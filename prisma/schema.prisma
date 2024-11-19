@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  name       String
+  active     Boolean   @default(true)
+  companyId  Int
+  managerId   Int?
+  cpf        String    @unique @db.VarChar(11)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  phone      String    @db.VarChar(11)
+  jobTitleId Int?
+  auth       Auth?
+  company    Company   @relation(fields: [companyId], references: [id])
+  User       User?     @relation("UserToUser", fields: [managerId], references: [id])
+  other_User User[]    @relation("UserToUser")
+  jobTitle   JobTitle? @relation(fields: [jobTitleId], references: [id])
+
+  createdReports Report[] @relation("creator")
+  approvedReports Report[] @relation("approver")
+}
+
+model Auth {
+  id       Int    @id @default(autoincrement())
+  email    String
+  password String
+  role     Roles  @default(USER)
+  userId   Int    @unique
+  user     User   @relation(fields: [userId], references: [id])
+}
+
+model JobTitle {
+  id        Int     @id @default(autoincrement())
+  title     String
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id])
+  users     User[]
+}
+
+model Expense {
+  id           Int             @id @default(autoincrement())
+  value        Float
+  quantity     Int
+  companyId    Int
+  projectId    Int
+  costCenterId Int
+  categoryId   Int
+  notes        String?
+  expenseDate DateTime         @default(now())
+  category     ExpenseCategory @relation(fields: [categoryId], references: [id])
+  company      Company         @relation(fields: [companyId], references: [id])
+  costCenter   CostCenter      @relation(fields: [costCenterId], references: [id])
+  project      Project         @relation(fields: [projectId], references: [id])
+  receipts     Receipt[]
+  reports      ReportExpense[]
+}
+
+model Report {
+  id          Int             @id @default(autoincrement())
+  code        String?         @unique
+  name        String
+  goal        String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  closedAt    DateTime?
+  dueDate    DateTime?
+  total       Float?
+  creatorId   Int             
+  approverId  Int             
+  status      ReportStatus    @default(OPEN)
+  creator     User            @relation(name: "creator", fields: [creatorId], references: [id])
+  approver    User            @relation(name: "approver", fields: [approverId], references: [id])
+  expenses    ReportExpense[]
+}
+
+model ReportExpense {
+  expenseId Int
+  reportId  Int
+  expense   Expense @relation(fields: [expenseId], references: [id])
+  report    Report  @relation(fields: [reportId], references: [id])
+
+  @@id([expenseId, reportId])
+}
+
+model ExpenseCategory {
+  id          Int       @id @default(autoincrement())
+  description String
+  active      Boolean   @default(true)
+  companyId   Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  expenses    Expense[]
+  company     Company   @relation(fields: [companyId], references: [id])
+}
+
+model Company {
+  id                Int               @id @default(autoincrement())
+  cnpj              String            @unique @db.VarChar(14)
+  name              String
+  website           String?
+  logo              String?
+  active            Boolean           @default(true)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  founded_year      String
+  address           Address?
+  costCenters       CostCenter[]
+  expenses          Expense[]
+  expenseCategories ExpenseCategory[]
+  jobTitles         JobTitle[]
+  project           Project[]
+  users             User[]
+}
+
+model CostCenter {
+  id          Int       @id @default(autoincrement())
+  code        String    @unique @db.VarChar(5)
+  description String
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  companyId   Int
+  company     Company   @relation(fields: [companyId], references: [id])
+  expenses    Expense[]
+}
+
+model Project {
+  id         Int       @id @default(autoincrement())
+  key        String    @unique @db.VarChar(10)
+  name       String
+  active     Boolean   @default(true)
+  companyId  Int
+  customerId Int
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  expenses   Expense[]
+  company    Company   @relation(fields: [companyId], references: [id])
+  customer   Customer  @relation(fields: [customerId], references: [id])
+}
+
+model Customer {
+  id        Int       @id @default(autoincrement())
+  name      String
+  email     String
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  phone     String    @db.VarChar(11)
+  updatedAt DateTime  @updatedAt
+  projects  Project[]
+}
+
+model Address {
+  id         Int     @id @default(autoincrement())
+  street     String
+  number     Int
+  complement Int?
+  city       String
+  neighbor   String
+  companyId  Int     @unique
+  cep        String  @db.VarChar(8)
+  uf         String
+  company    Company @relation(fields: [companyId], references: [id])
+}
+
+model Receipt {
+  id        Int     @id @default(autoincrement())
+  expenseId Int
+  expense   Expense @relation(fields: [expenseId], references: [id])
+}
+
+enum ReportStatus {
+  OPEN
+  SUBMITTED
+  REJECTED
+  APPROVED
+  PENDING_PROCESSING
+  PROCESSING_ERROR
+  PROCESSING_PAYMENT
+}
+
+enum Roles {
+  ADMIN
+  SUPERUSER
+  FINANCE
+  APPROVER
+  USER
+}
