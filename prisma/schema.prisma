@@ -55,7 +55,7 @@ model Expense {
   costCenterId Int
   categoryId   Int
   notes        String?
-  expenseDate DateTime         @default(now())
+  expenseDate  DateTime         @default(now())
   category     ExpenseCategory @relation(fields: [categoryId], references: [id])
   company      Company         @relation(fields: [companyId], references: [id])
   costCenter   CostCenter      @relation(fields: [costCenterId], references: [id])
@@ -173,6 +173,7 @@ model Address {
 
 model Receipt {
   id        Int     @id @default(autoincrement())
+  url       String
   expenseId Int
   expense   Expense @relation(fields: [expenseId], references: [id])
 }

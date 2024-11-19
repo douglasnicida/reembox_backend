@@ -19,6 +19,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ReportModule } from './modules/report/report.module';
 import { ExpenseModule } from './modules/expense/expense.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { ReceiptModule } from './modules/receipt/receipt.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { UploadModule } from './modules/upload/upload.module';
     ReportModule,
     ExpenseModule,
     UploadModule,
+    ReceiptModule,
   ],
   controllers: [AppController],
   providers: [AppService, AuthService,

@@ -22,6 +22,9 @@ export class ExpenseService {
   ) {}
 
   async create(dto: CreateExpenseDto, user: PayloadStruct) {
+    
+    // Fazendo o upload das imagens e retornando as public URLs de cada uma
+    
     // Cria a despesa
     const expense: Expense = await this.prisma.expense.create({
       data: await this.upsert(dto, user)
