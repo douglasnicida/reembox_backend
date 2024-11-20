@@ -7,6 +7,6 @@ export class CreateReportDto {
   @IsNotEmpty({ message: "Objetivo do relatório é obrigatório" })
   goal: string;
 
-  @IsNotEmpty({ message: "Aprovador do relatório é obrigatório" })
-  approverId: number;
+  @IsNotEmpty({message: "O relatório deve ter pelo menos um aprovador"})
+  approverID: number;
 }

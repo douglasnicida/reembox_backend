@@ -137,12 +137,14 @@ export class UserService {
     })
   }
 
-  async getApprovers() {
+  async getApprovers(companyID: number) {
     return await this.prisma.user.findMany({
       where: {
-        managerId: null
+        managerId: null,
+        companyId: companyID
       },
       select: {
+        id: true,
         name: true
       }
     })

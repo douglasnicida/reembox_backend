@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { PrismaService } from 'prisma/service/prisma.service';
@@ -18,7 +18,7 @@ export class ExpenseService {
     private readonly costCenterService: CostCenterService,
     private readonly projectService: ProjectService,
     private readonly expenseCategoryService: ExpenseCategoryService,
-    private readonly reportService: ReportService
+    @Inject(forwardRef(() => ReportService)) private readonly reportService: ReportService
   ) {}
 
   async create(dto: CreateExpenseDto, user: PayloadStruct) {
@@ -30,6 +30,8 @@ export class ExpenseService {
     if (dto.reportCode) {
       await this.addExpensesToReport(dto, expense)
     }
+
+    return expense.id;
   }
 
   async findAll(pagination: Pagination): Promise<Paginated<Expense>> {

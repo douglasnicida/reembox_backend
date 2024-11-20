@@ -195,8 +195,8 @@ model Address {
 
 model Receipt {
   id        Int     @id @default(autoincrement())
-  expenseId Int
-  expense   Expense @relation(fields: [expenseId], references: [id])
+  expenseId Int?
+  expense   Expense? @relation(fields: [expenseId], references: [id])
 }
 
 enum ReportStatus {

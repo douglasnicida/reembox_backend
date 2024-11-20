@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 import { ExpenseController } from './expense.controller';
 import { PrismaModule } from 'prisma/service/prisma.module';
@@ -15,7 +15,8 @@ import { ReportModule } from '../report/report.module';
     CostCenterModule, 
     ProjectModule, 
     ExpenseCategoryModule, 
-    ReportModule
-  ]
+    forwardRef(() => ReportModule), 
+  ],
+  exports: [ExpenseService]
 })
 export class ExpenseModule {}

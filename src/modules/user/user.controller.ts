@@ -30,8 +30,8 @@ export class UserController {
   }
 
   @Get('/approvers/')
-  async getApprovers() {
-    return this.userService.getApprovers();
+  async getApprovers(@AuthenticatedUser() user: PayloadStruct) {
+    return this.userService.getApprovers(user.companyID);
   }
 
   @Delete(':id')
