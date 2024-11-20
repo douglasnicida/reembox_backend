@@ -16,6 +16,9 @@ async function bootstrap() {
 
   // Aplica os nossos interceptadores globalmente
   app.useGlobalInterceptors(new ResponseInterceptor(reflector));
+
+  await app.startAllMicroservices();
+
   await app.listen(3333);
 }
 bootstrap();

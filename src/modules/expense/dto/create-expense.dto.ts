@@ -21,9 +21,6 @@ export class CreateExpenseDto {
   @IsOptional({ message: "Código do relatório deve existir" })
   reportCode?: string;
 
-  // @IsNotEmpty({message: "Deve existir pelo menos um comprovante de pagamento"})
-  receiptIds: number[];
-
   @IsNotEmpty({ message: "Centro de Custo é obrigatório" })
   @IsPositive({ message: "Centro de Custo deve ser um ID numérico" })
   @IsInt({ message: "Centro de Custo deve ser um ID numérico" })

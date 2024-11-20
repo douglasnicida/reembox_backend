@@ -19,7 +19,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { ReportModule } from './modules/report/report.module';
 import { ExpenseModule } from './modules/expense/expense.module';
 import { UploadModule } from './modules/upload/upload.module';
-import { ReceiptModule } from './modules/receipt/receipt.module';
+import { AllocationModule } from './modules/allocation/allocation.module';
+
+// Importando o KafkaModule
+import { KafkaModule } from './kafka/kafka.module';
 
 @Module({
   imports: [
@@ -36,10 +39,13 @@ import { ReceiptModule } from './modules/receipt/receipt.module';
     ReportModule,
     ExpenseModule,
     UploadModule,
-    ReceiptModule,
+    AllocationModule,
+    KafkaModule,
   ],
   controllers: [AppController],
-  providers: [AppService, AuthService,
+  providers: [
+    AppService, 
+    AuthService,
     {
       provide: APP_GUARD,
       useClass: AuthGuard,
@@ -48,6 +54,6 @@ import { ReceiptModule } from './modules/receipt/receipt.module';
     //   provide: APP_GUARD,
     //   useClass: RolesGuard,
     // }
-  ]
+  ],
 })
 export class AppModule {}
