@@ -1,6 +1,6 @@
-import { Expense, User } from "@prisma/client";
+import { Expense } from "@prisma/client";
 
-type ApproverFormat = {
+export type ApproverFormat = {
     id: number;
     name: string;
 }

@@ -5,7 +5,7 @@ import { PrismaService } from 'prisma/service/prisma.service';
 import { Paginated, Pagination } from '@/decorators/pagination.decorator';
 import { Expense, Prisma, Report, ReportExpense, ReportStatus } from '@prisma/client';
 import { PayloadStruct } from '@/interfaces/model_types';
-import { ReportParamsDto } from './dto/response-report.dto';
+import { ApproverFormat, ReportParamsDto } from './dto/response-report.dto';
 import { ExpenseService } from '../expense/expense.service';
 import { UserService } from '../user/user.service';
 
@@ -18,34 +18,49 @@ export class ReportService {
   ) {}
 
   async create(dto: CreateReportDto, user: PayloadStruct) {
-    // const { approverId, ...report } = dto
-
-    // const approver = await this.prisma.user.findFirst({ where: { managerId: approverId } })
-    
-    // if (!approver) {
-    //   throw new UnprocessableEntityException(`Usuário com id=${approverId} não existe ou não é um aprovador`)
-    // }
+    const { approverID, expensesIds, ...report } = dto;
 
     const { id } = await this.prisma.report.create({
       data: {
-        ...dto,
+        ...report,
         creator: {
-          connect: { id: user.id }
+          connect: { id: user.userID }
         },
         approver: {
-         connect: { id: dto.approverID }
+          connect: { id: approverID }
         },
         total: 0,
         status: ReportStatus.OPEN
       },
-    })
-    
+    });
+  
     await this.prisma.report.update({
       where: { id },
       data: {
         code: `RPT-${id}`
       }  
-    })
+    });
+  
+    if (expensesIds.length > 0) {
+      const expenses = await this.prisma.expense.findMany({
+        where: {
+          id: { in: expensesIds }
+        }
+      });
+  
+      // Verifique se todas as despesas foram encontradas
+      if (expenses.length !== expensesIds.length) {
+        throw new NotFoundException('Algumas despesas não foram encontradas.');
+      }
+  
+      // Crie as associações entre o relatório e as despesas
+      await this.prisma.reportExpense.createMany({
+        data: expenses.map(expense => ({
+          reportId: id,
+          expenseId: expense.id
+        }))
+      });
+    }
   }
 
   async findAll(pagination: Pagination, user?: PayloadStruct, status?: ReportStatus): Promise<Paginated<Report>> {
@@ -244,26 +259,9 @@ export class ReportService {
     }))
   }
 
-  async findParams(user: PayloadStruct, reportID: number): Promise<ReportParamsDto> {
-    const approvers = await this.userService.getApprovers(user.companyID)
-    const expenses: Expense[] = []
-    
-    const reportExpenses = await this.prisma.reportExpense.findMany({
-      where: {
-        reportId: reportID
-      }
-    })
-
-    reportExpenses.forEach(async (reportExpense: ReportExpense) => {
-      const expense: Expense = await this.expenseService.findOne(reportExpense.expenseId)
-      if(expense) {
-        expenses.push(expense)
-      }
-    })
-
-    return {
-      approvers,
-      expenses,
-    }
+  async findParams(user: PayloadStruct): Promise<ReportParamsDto> {
+    const approvers: ApproverFormat[] = await this.userService.getApprovers(user.companyID)
+    const expenses: Expense[] = await this.expenseService.findAllByCompany(user)
+    return { approvers, expenses }
   }
 }

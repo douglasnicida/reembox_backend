@@ -83,6 +83,22 @@ export class ExpenseService {
       size,
     };
   }
+
+  async findAllByCompany(user: PayloadStruct) {
+
+    const query = {
+      orderBy: {
+        expenseDate: "desc"
+      },
+      where: {
+        companyId: user.companyID
+      }
+    } satisfies Prisma.ExpenseFindManyArgs
+
+    const expenses = await this.prisma.expense.findMany(query);
+
+    return expenses;
+  }
   
   async findOne(id: number) {
     return this.prisma.expense

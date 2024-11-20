@@ -27,6 +27,13 @@ export class ReportController {
     return this.reportService.findAll(pagination, user);
   }
 
+  @Get('/params')
+  @MyResponse()
+  @Roles(Role.USER, Role.ADMIN, Role.FINANCE, Role.APPROVER, Role.SUPERUSER)
+  findParams(@AuthenticatedUser() user: PayloadStruct) {
+    return this.reportService.findParams(user)
+  }
+
   @Get(':id')
   @MyResponse("Relatório obtido com sucesso")
   @Roles(Role.USER)

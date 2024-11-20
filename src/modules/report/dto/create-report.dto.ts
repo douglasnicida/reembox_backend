@@ -9,4 +9,6 @@ export class CreateReportDto {
 
   @IsNotEmpty({message: "O relatório deve ter pelo menos um aprovador"})
   approverID: number;
+
+  expensesIds: number[]
 }

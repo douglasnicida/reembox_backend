@@ -25,6 +25,13 @@ export class ExpenseController {
   findAll(@PaginationParams() pagination: Pagination) {
     return this.expenseService.findAll(pagination);
   }
+
+  @Get('/findAllByCompany')
+  @MyResponse("Foram encontradas {length} despesas")
+  @Roles(Role.FINANCE, Role.APPROVER)
+  findAllByCompany(@AuthenticatedUser() user: PayloadStruct) {
+    return this.expenseService.findAllByCompany(user);
+  }
   
   @MyResponse("Parâmetros da despesa obtidos com sucesso")
   @Get('/params')
