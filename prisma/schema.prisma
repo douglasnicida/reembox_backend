@@ -73,12 +73,12 @@ model Report {
   updatedAt   DateTime        @updatedAt
   closedAt    DateTime?
   dueDate    DateTime?
-  total       Float?
+  total       Float           @default(0)
   creatorId   Int             
-  approverId  Int             
+  approverId  Int?             
   status      ReportStatus    @default(OPEN)
   creator     User            @relation(name: "creator", fields: [creatorId], references: [id])
-  approver    User            @relation(name: "approver", fields: [approverId], references: [id])
+  approver    User?            @relation(name: "approver", fields: [approverId], references: [id])
   expenses    ReportExpense[]
 }
 

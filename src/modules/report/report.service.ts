@@ -3,31 +3,37 @@ import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
 import { PrismaService } from 'prisma/service/prisma.service';
 import { Paginated, Pagination } from '@/decorators/pagination.decorator';
-import { Expense, Prisma, Report, ReportStatus } from '@prisma/client';
+import { Expense, Prisma, Report, ReportExpense, ReportStatus } from '@prisma/client';
 import { PayloadStruct } from '@/interfaces/model_types';
+import { ReportParamsDto } from './dto/response-report.dto';
+import { ExpenseService } from '../expense/expense.service';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class ReportService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly expenseService: ExpenseService,
+    private readonly userService: UserService
+  ) {}
 
   async create(dto: CreateReportDto, user: PayloadStruct) {
-    const { approverId, ...report } = dto
+    // const { approverId, ...report } = dto
 
-    const approver = await this.prisma.user.findFirst({ where: { managerId: approverId } })
+    // const approver = await this.prisma.user.findFirst({ where: { managerId: approverId } })
     
-    if (!approver) {
-      throw new UnprocessableEntityException(`Usuário com id=${approverId} não existe ou não é um aprovador`)
-    }
+    // if (!approver) {
+    //   throw new UnprocessableEntityException(`Usuário com id=${approverId} não existe ou não é um aprovador`)
+    // }
 
     const { id } = await this.prisma.report.create({
       data: {
-        ...report,
+        ...dto,
         creator: {
           connect: { id: user.id }
         },
-        approver: {
-          connect: { id: approverId }
-        }
+        total: 0,
+        status: ReportStatus.OPEN
       },
     })
     
@@ -51,6 +57,10 @@ export class ReportService {
       where: {
         ...(user ? { creatorId: user.id } : {}),
         ...(status ? { status: status } : {})
+      },
+      include: {
+        creator: { select: { name: true } },
+        approver: { select: { name: true } },
       }
     } as Prisma.ReportFindManyArgs
 
@@ -221,7 +231,7 @@ export class ReportService {
       select: {
         id: true,
         code: true,
-        name: true
+        name: true,
       }
     })
 
@@ -229,5 +239,28 @@ export class ReportService {
       id,
       param: `${code} - ${name}`
     }))
+  }
+
+  async findParams(user: PayloadStruct, reportID: number): Promise<ReportParamsDto> {
+    const approvers = await this.userService.getApprovers(user.companyID)
+    const expenses: Expense[] = []
+    
+    const reportExpenses = await this.prisma.reportExpense.findMany({
+      where: {
+        reportId: reportID
+      }
+    })
+
+    reportExpenses.forEach(async (reportExpense: ReportExpense) => {
+      const expense: Expense = await this.expenseService.findOne(reportExpense.expenseId)
+      if(expense) {
+        expenses.push(expense)
+      }
+    })
+
+    return {
+      approvers,
+      expenses,
+    }
   }
 }
