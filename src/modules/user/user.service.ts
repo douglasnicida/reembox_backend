@@ -34,6 +34,20 @@ export class UserService {
     });
   }
 
+  async findMany(userIds: number[]): Promise<User[]> {
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: { in: userIds },
+      },
+    });
+
+    if (users.length > userIds.length) {
+      throw new NotFoundException("Não foram encontrado todos os usuários")
+    }
+
+    return users
+  }
+
   async findAll(pagination: Pagination, companyId: number) {
     const { page, limit, size, offset } = pagination;
 
@@ -123,14 +137,12 @@ export class UserService {
     })
   }
 
-  async getApprovers(companyID: number) {
+  async getApprovers() {
     return await this.prisma.user.findMany({
       where: {
-        managerId: null,
-        companyId: companyID
+        managerId: null
       },
       select: {
-        id: true,
         name: true
       }
     })

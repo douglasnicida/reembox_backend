@@ -20,13 +20,31 @@ model User {
   phone      String    @db.VarChar(11)
   jobTitleId Int?
   auth       Auth?
+
   company    Company   @relation(fields: [companyId], references: [id])
+  
   User       User?     @relation("UserToUser", fields: [managerId], references: [id])
   other_User User[]    @relation("UserToUser")
+
   jobTitle   JobTitle? @relation(fields: [jobTitleId], references: [id])
+
+  allocations Allocation[]
 
   createdReports Report[] @relation("creator")
   approvedReports Report[] @relation("approver")
+}
+model Allocation {
+  id          Int       @id @default(autoincrement())
+  projectId   Int
+  userId      Int
+  startDate   DateTime  @default(now()) 
+  estimatedEndDate  DateTime
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  project     Project   @relation(fields: [projectId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 }
 
 model Auth {
@@ -55,7 +73,7 @@ model Expense {
   costCenterId Int
   categoryId   Int
   notes        String?
-  expenseDate  DateTime         @default(now())
+  expenseDate DateTime         @default(now())
   category     ExpenseCategory @relation(fields: [categoryId], references: [id])
   company      Company         @relation(fields: [companyId], references: [id])
   costCenter   CostCenter      @relation(fields: [costCenterId], references: [id])
@@ -73,12 +91,12 @@ model Report {
   updatedAt   DateTime        @updatedAt
   closedAt    DateTime?
   dueDate    DateTime?
-  total       Float           @default(0)
+  total       Float?
   creatorId   Int             
-  approverId  Int?             
+  approverId  Int             
   status      ReportStatus    @default(OPEN)
   creator     User            @relation(name: "creator", fields: [creatorId], references: [id])
-  approver    User?            @relation(name: "approver", fields: [approverId], references: [id])
+  approver    User            @relation(name: "approver", fields: [approverId], references: [id])
   expenses    ReportExpense[]
 }
 
@@ -143,8 +161,12 @@ model Project {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   expenses   Expense[]
+
   company    Company   @relation(fields: [companyId], references: [id])
+
   customer   Customer  @relation(fields: [customerId], references: [id])
+
+  allocations Allocation[]
 }
 
 model Customer {
@@ -173,9 +195,8 @@ model Address {
 
 model Receipt {
   id        Int     @id @default(autoincrement())
-  url       String  @unique
-  expenseId Int?
-  expense   Expense? @relation(fields: [expenseId], references: [id])
+  expenseId Int
+  expense   Expense @relation(fields: [expenseId], references: [id])
 }
 
 enum ReportStatus {

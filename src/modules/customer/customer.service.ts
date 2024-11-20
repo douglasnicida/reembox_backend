@@ -22,7 +22,7 @@ export class CustomerService {
       throw new ConflictException("Esse cliente já existe")
     }
 
-    await this.prisma.customer.create({ data: { ...dto }})
+    return this.prisma.customer.create({ data: { ...dto }})
   }
 
   async findOne(id: number) {

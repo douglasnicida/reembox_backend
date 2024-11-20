@@ -7,15 +7,31 @@ import { Pagination, PaginationParams } from '@/decorators/pagination.decorator'
 import { AuthenticatedUser } from '@/decorators/auth-user.decorator';
 import { PayloadStruct } from '@/interfaces/model_types';
 import { FilterParams, QueryFilter } from '@/decorators/filter.decorator';
+import { KafkaData, KafkaProducerService } from '@/kafka/producer.service';
 
 @Controller('customers')
 export class CustomerController {
-  constructor(private readonly customerService: CustomerService) {}
+  constructor(
+    private readonly customerService: CustomerService,
+    private readonly kafkaProducerService: KafkaProducerService
+  ) {}
 
   @Post()
   @MyResponse("Cliente criado com sucesso", HttpStatus.CREATED)
   async create(@Body() dto: CreateCustomerDto) {
-    await this.customerService.create(dto);
+    const newCustomer = await this.customerService.create(dto);
+
+    const message: KafkaData = {
+      event_type: "create-customer",
+      source: "customer-service",
+      data: {
+        id: newCustomer.id,
+        name: newCustomer.name,
+        createdAt: newCustomer.createdAt,
+      },
+    };
+
+    await this.kafkaProducerService.sendMessage('customer_created', message);
   }
 
   @Get('')

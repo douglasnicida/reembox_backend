@@ -109,7 +109,7 @@ export class ProjectService {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<Project> {
     return this.prisma.project
     .findUniqueOrThrow({ where: { id } })
     .catch(() => { 

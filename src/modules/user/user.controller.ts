@@ -29,9 +29,9 @@ export class UserController {
     return await this.userService.changeJobTitle(userID, jobTitleID);
   }
 
-  @Get('/approvers/:companyID')
-  async getApprovers(@Body('companyID') companyID: number) {
-    return this.userService.getApprovers(companyID);
+  @Get('/approvers/')
+  async getApprovers() {
+    return this.userService.getApprovers();
   }
 
   @Delete(':id')
