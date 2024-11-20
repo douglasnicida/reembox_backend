@@ -23,6 +23,7 @@ import { AllocationModule } from './modules/allocation/allocation.module';
 
 // Importando o KafkaModule
 import { KafkaModule } from './kafka/kafka.module';
+import { ReceiptModule } from './modules/receipt/receipt.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { KafkaModule } from './kafka/kafka.module';
     ExpenseCategoryModule,
     ConfigModule.forRoot(),
     ReportModule,
+    ReceiptModule,
     ExpenseModule,
     UploadModule,
     AllocationModule,
