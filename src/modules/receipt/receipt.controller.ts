@@ -3,15 +3,18 @@ import { ReceiptService } from './receipt.service';
 import { CreateReceiptDto } from './dto/create-receipt.dto';
 import { UpdateReceiptDto } from './dto/update-receipt.dto';
 import { MyResponse } from '@/interceptors/response.interceptor';
+import { Receipt } from '@prisma/client';
 
-@Controller('receipt')
+@Controller('receipts')
 export class ReceiptController {
   constructor(private readonly receiptService: ReceiptService) {}
 
   @Post()
   @MyResponse("Recibo criado com sucesso.", HttpStatus.CREATED)
-  create(@Body() createReceiptDto: CreateReceiptDto) {
-    return this.receiptService.create(createReceiptDto);
+  async create(@Body() createReceiptDto: CreateReceiptDto) {
+    const receipt: Receipt = await this.receiptService.create(createReceiptDto);
+  
+    return receipt.id;
   }
 
   @Get()

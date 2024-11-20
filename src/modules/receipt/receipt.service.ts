@@ -8,7 +8,10 @@ export class ReceiptService {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(createReceiptDto: CreateReceiptDto) {
-    return await this.prismaService.receipt.create({data: createReceiptDto});
+
+    return await this.prismaService.receipt.create({
+      data: createReceiptDto,
+    });
   }
 
   findAll() {
@@ -20,7 +23,7 @@ export class ReceiptService {
   }
 
   update(id: number, updateReceiptDto: UpdateReceiptDto) {
-    return `This action updates a #${id} receipt`;
+    return this.prismaService.receipt.update({data: updateReceiptDto, where: {id}});
   }
 
   remove(id: number) {

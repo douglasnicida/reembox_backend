@@ -16,7 +16,7 @@ export class ExpenseController {
   @MyResponse("Despesa criada com sucesso", HttpStatus.CREATED)
   @Roles(Role.USER, Role.FINANCE, Role.APPROVER)
   async create(@Body() dto: CreateExpenseDto, @AuthenticatedUser() user: PayloadStruct) {
-    await this.expenseService.create(dto, user);
+    return await this.expenseService.create(dto, user);
   }
 
   @Get()

@@ -22,9 +22,6 @@ export class ExpenseService {
   ) {}
 
   async create(dto: CreateExpenseDto, user: PayloadStruct) {
-    
-    // Fazendo o upload das imagens e retornando as public URLs de cada uma
-    
     // Cria a despesa
     const expense: Expense = await this.prisma.expense.create({
       data: await this.upsert(dto, user)
@@ -33,6 +30,8 @@ export class ExpenseService {
     if (dto.reportCode) {
       await this.addExpensesToReport(dto, expense)
     }
+
+    return expense.id;
   }
 
   async findAll(pagination: Pagination): Promise<Paginated<Expense>> {

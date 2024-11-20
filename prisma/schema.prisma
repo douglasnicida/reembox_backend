@@ -173,9 +173,9 @@ model Address {
 
 model Receipt {
   id        Int     @id @default(autoincrement())
-  url       String
-  expenseId Int
-  expense   Expense @relation(fields: [expenseId], references: [id])
+  url       String  @unique
+  expenseId Int?
+  expense   Expense? @relation(fields: [expenseId], references: [id])
 }
 
 enum ReportStatus {
