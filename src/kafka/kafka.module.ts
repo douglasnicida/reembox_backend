@@ -21,5 +21,6 @@ import { KafkaProducerService } from './producer.service';
     ]),
   ],
   providers: [KafkaProducerService],
+  exports: [KafkaProducerService]
 })
 export class KafkaModule {}
