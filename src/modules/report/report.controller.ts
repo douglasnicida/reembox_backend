@@ -34,6 +34,13 @@ export class ReportController {
     return this.reportService.findParams(user)
   }
 
+  @Get('/reportsToApprove')
+  @MyResponse()
+  @Roles(Role.ADMIN, Role.FINANCE, Role.APPROVER, Role.SUPERUSER)
+  getUnderApprove(@AuthenticatedUser() user: PayloadStruct) {
+    return this.reportService.underApprove(user.userID)
+  }
+
   @Get(':id')
   @MyResponse("Relatório obtido com sucesso")
   @Roles(Role.USER)
