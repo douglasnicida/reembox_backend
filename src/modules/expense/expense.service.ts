@@ -86,8 +86,6 @@ export class ExpenseService {
 
   async findAllByCompany(user: PayloadStruct) {
 
-
-
     const expenses = await this.prisma.expense.findMany({
       orderBy: {
         expenseDate: "desc"
@@ -108,7 +106,6 @@ export class ExpenseService {
         }
       }
     });
-
     return expenses;
   }
   
@@ -182,38 +179,58 @@ export class ExpenseService {
     } as Prisma.ExpenseCreateInput;
   }
 
-  private async addExpensesToReport(dto: CreateExpenseDto | UpdateExpenseDto, expense: Expense) {
-    const { expense: createdExpense } = await this.prisma.reportExpense.create({
-      data: {
-        expense: { 
-          connect: { id: expense.id }
-        },
-        report: { 
-          connect: { code: dto.reportCode }
+  async addExpensesToReport(dto: CreateExpenseDto | UpdateExpenseDto, expense: Expense) {
+    // Verificar se a relação entre a despesa e o relatório já existe
+    if(dto.reportId) {
+      const existingRelation = await this.prisma.reportExpense.findUnique({
+        where: {
+            // Supondo que você tenha uma combinação única de reportCode e expenseId
+            expenseId_reportId: {
+                reportId: dto.reportId,
+                expenseId: expense.id
+            }
         }
-      },
-      include: {
-        expense: {
-          select: {
-            value: true,
-            quantity: true
-          }
-        }
+      });
+
+      // Se a relação já existir, podemos optar por não fazer nada ou lançar um erro
+      if (existingRelation) {
+          throw new Error('A relação entre a despesa e o relatório já existe.');
       }
+    }
+    
+
+    // Se não existir, prosseguir com a criação da relação
+    const { expense: createdExpense } = await this.prisma.reportExpense.create({
+        data: {
+            expense: { 
+                connect: { id: expense.id }
+            },
+            report: { 
+                connect: { code: dto.reportCode }
+            }
+        },
+        include: {
+            expense: {
+                select: {
+                    value: true,
+                    quantity: true
+                }
+            }
+        }
     });
 
     // Calcular valor total das despesas
-    const report = await this.prisma.report.findUnique({ where: { code: dto.reportCode } })
+    const report = await this.prisma.report.findUnique({ where: { code: dto.reportCode } });
 
-    report.total += createdExpense.quantity * createdExpense.value
+    report.total += createdExpense.quantity * createdExpense.value;
 
     await this.prisma.report.update({
-      where: { id: report.id },
-      data: {
-        total: report.total
-      }
-    })        
-  }
+        where: { id: report.id },
+        data: {
+            total: report.total
+        }
+    });
+}
 
   async findParams(user: PayloadStruct): Promise<ExpenseParamsDto> {
     const costCenters = await this.costCenterService.getParams(user.companyID)

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, HttpStatus, Query, Patch } from '@nestjs/common';
 import { ExpenseService } from './expense.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
@@ -51,5 +51,22 @@ export class ExpenseController {
   @Roles(Role.USER, Role.FINANCE, Role.APPROVER)
   async update(@Param('id') id: string, @Body() dto: UpdateExpenseDto, @AuthenticatedUser() user: PayloadStruct) {
     await this.expenseService.update(+id, dto, user);
+  }
+
+  @Patch('/addExpenseToReport/:id')
+  @MyResponse("Despesa adicionada ao relatório com sucesso")
+  @Roles(Role.FINANCE, Role.APPROVER, Role.USER)
+  async addExpenseToReport(
+    @Body() dto: UpdateExpenseDto,
+    @Param('id') id: string,
+    @AuthenticatedUser () user: PayloadStruct
+  ) {
+    // Chama o método do serviço para adicionar a despesa ao relatório
+    const expense = await this.expenseService.findOne(+id); // Supondo que você tenha um método para encontrar a despesa pelo ID
+    if (!expense) {
+      throw new Error('Despesa não encontrada.');
+    }
+
+    return await this.expenseService.addExpensesToReport(dto, expense);
   }
 }

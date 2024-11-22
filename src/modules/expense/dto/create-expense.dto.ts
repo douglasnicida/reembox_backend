@@ -38,4 +38,6 @@ export class CreateExpenseDto {
   @IsPositive({ message: "Categoria da despesa deve ser um ID numérico" })
   @IsInt({ message: "Categoria da despesa deve ser um ID numérico" })
   categoryId: number;
+
+  reportId?: number;
 }
