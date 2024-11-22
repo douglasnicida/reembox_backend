@@ -27,6 +27,13 @@ export class ReportController {
     return this.reportService.findAll(pagination, user);
   }
 
+  @Get('/findAllByCreator')
+  @MyResponse("Foram encontrados {length} relatórios")
+  @Roles(Role.USER, Role.FINANCE, Role.APPROVER, Role.ADMIN)
+  findAllByCreator(@PaginationParams() pagination: Pagination, @AuthenticatedUser() user: PayloadStruct) {
+    return this.reportService.findAllByCreator(pagination, user);
+  }
+
   @Get('/params')
   @MyResponse()
   @Roles(Role.USER, Role.ADMIN, Role.FINANCE, Role.APPROVER, Role.SUPERUSER)

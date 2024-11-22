@@ -73,7 +73,7 @@ export class ReportService {
         updatedAt: "desc"
       },
       where: {
-        ...(user ? { creatorId: user.id } : {}),
+        // ...(user ? { creatorId: user.id } : {}),
         ...(status ? { status: status } : {})
       },
       include: {
@@ -85,6 +85,52 @@ export class ReportService {
     const [reports, total] = await this.prisma.$transaction([
       this.prisma.report.findMany(query),
       this.prisma.report.count()
+    ])
+
+    if (total <= 0) {
+      throw new NotFoundException("Nenhum relatório foi encontrado.")
+    }
+
+    return { 
+      items: reports,
+      totalItems: total, 
+      totalPages: Math.ceil(total / limit), 
+      currentPage: page, 
+      size,
+    };
+  }
+
+  async findAllByCreator(pagination: Pagination, user: PayloadStruct, status?: ReportStatus): Promise<Paginated<Report>> {
+    const { page, limit, size, offset } = pagination;
+
+    const query = {
+      skip: offset,
+      take: limit,
+      orderBy: {
+        updatedAt: "desc"
+      },
+      where: {
+        AND: [
+          {creatorId: user.userID},
+          {...(status ? { status: status } : {})}
+        ]
+      },
+      include: {
+        creator: { select: { name: true } },
+        approver: { select: { name: true } },
+      }
+    } as Prisma.ReportFindManyArgs
+
+    const [reports, total] = await this.prisma.$transaction([
+      this.prisma.report.findMany(query),
+      this.prisma.report.count({
+        where: {
+          AND: [
+            {creatorId: user.userID},
+            {...(status ? { status: status } : {})}
+          ]
+        }
+      })
     ])
 
     if (total <= 0) {
@@ -156,7 +202,8 @@ export class ReportService {
 
     const reports = await this.prisma.report.findMany({
       where: {
-        approverId: approver.id
+        approverId: approver.id,
+        status: 'SUBMITTED'
       },
       select: {
         id: true,
