@@ -194,6 +194,42 @@ export class ReportService {
     })
   }
 
+  // TODO: entender como funciona para ver qual financeiro que deve ser visto
+  async approvedReports(user: PayloadStruct) {
+
+    // const approver = await this.userService.findOneById(approverID);
+
+    // if(!approver) throw new NotFoundException('Aprovador não encontrado')
+
+    const reports = await this.prisma.report.findMany({
+      where: {
+        creator: { companyId: user.companyID },
+        status: 'APPROVED'
+      },
+      select: {
+        id: true,
+        name: true,
+        goal: true,
+        createdAt: true,
+        total: true,
+        status: true,
+        approver: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
+        creator: {
+          select: {
+            name: true
+          }
+        }
+      }
+    })
+
+    return reports;
+  }
+
   async underApprove(approverID: number){
 
     const approver = await this.userService.findOneById(approverID);
