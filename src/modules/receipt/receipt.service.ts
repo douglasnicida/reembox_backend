@@ -14,8 +14,8 @@ export class ReceiptService {
     });
   }
 
-  findAll() {
-    return `This action returns all receipt`;
+  async findAll(expenseID: number) {
+    return await this.prismaService.receipt.findMany({where: {expenseId: expenseID}});
   }
 
   findOne(id: number) {

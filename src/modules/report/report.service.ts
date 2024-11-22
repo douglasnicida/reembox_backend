@@ -105,7 +105,9 @@ export class ReportService {
     .findUniqueOrThrow({ 
       where: { id }, 
       include: {
-        expenses: true,
+        expenses: {
+          select: {expense: true}, 
+        },
       } 
     })
     .catch(() => { 
@@ -295,7 +297,7 @@ export class ReportService {
 
   async findParams(user: PayloadStruct): Promise<ReportParamsDto> {
     const approvers: ApproverFormat[] = await this.userService.getApprovers(user.companyID)
-    const expenses: Expense[] = await this.expenseService.findAllByCompany(user)
+    const expenses: any[] = await this.expenseService.findAllByCompany(user)
     return { approvers, expenses }
   }
 }

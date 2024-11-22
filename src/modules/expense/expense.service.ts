@@ -86,16 +86,28 @@ export class ExpenseService {
 
   async findAllByCompany(user: PayloadStruct) {
 
-    const query = {
+
+
+    const expenses = await this.prisma.expense.findMany({
       orderBy: {
         expenseDate: "desc"
       },
       where: {
         companyId: user.companyID
+      },
+      include: {
+        project: {
+          select: {
+            name: true
+          }
+        },
+        category: {
+          select: {
+            description: true
+          }
+        }
       }
-    } satisfies Prisma.ExpenseFindManyArgs
-
-    const expenses = await this.prisma.expense.findMany(query);
+    });
 
     return expenses;
   }

@@ -17,9 +17,9 @@ export class ReceiptController {
     return receipt.id;
   }
 
-  @Get()
-  findAll() {
-    return this.receiptService.findAll();
+  @Get('/findWithExpense/:id')
+  findAll(@Param('id') id: string) {
+    return this.receiptService.findAll(+id);
   }
 
   @Get(':id')

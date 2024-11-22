@@ -41,7 +41,7 @@ export class ReportController {
     return this.reportService.underApprove(user.userID)
   }
 
-  @Get(':id')
+  @Get('/:id/byUser')
   @MyResponse("Relatório obtido com sucesso")
   @Roles(Role.USER)
   findOneByUser(@Param('id') id: string, @AuthenticatedUser() user: PayloadStruct) {

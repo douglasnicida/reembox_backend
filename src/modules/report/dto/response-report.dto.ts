@@ -7,5 +7,5 @@ export type ApproverFormat = {
 
 export class ReportParamsDto {
     approvers: ApproverFormat[];
-    expenses: Expense[];
+    expenses: any[];
 }
