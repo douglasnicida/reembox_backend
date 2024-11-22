@@ -4,7 +4,7 @@ import { UpdateReportDto } from './dto/update-report.dto';
 import { PrismaService } from 'prisma/service/prisma.service';
 import { Paginated, Pagination } from '@/decorators/pagination.decorator';
 import { Expense, Prisma, Report, ReportExpense, ReportStatus } from '@prisma/client';
-import { PayloadStruct } from '@/interfaces/model_types';
+import { PayloadStruct, Role } from '@/interfaces/model_types';
 import { ApproverFormat, ReportParamsDto } from './dto/response-report.dto';
 import { ExpenseService } from '../expense/expense.service';
 import { UserService } from '../user/user.service';
@@ -194,12 +194,18 @@ export class ReportService {
     })
   }
 
-  // TODO: entender como funciona para ver qual financeiro que deve ser visto
   async approvedReports(user: PayloadStruct) {
 
-    // const approver = await this.userService.findOneById(approverID);
+    const { role } = await this.prisma.auth.findUniqueOrThrow({
+      where: {
+        userId: user.userID
+      },
+      select: {
+        role: true
+      }
+    });
 
-    // if(!approver) throw new NotFoundException('Aprovador não encontrado')
+    if(!role || (role != Role.FINANCE && role != Role.ADMIN)) throw new NotFoundException('Financeiro não encontrado')
 
     const reports = await this.prisma.report.findMany({
       where: {

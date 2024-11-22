@@ -43,9 +43,16 @@ export class ReportController {
 
   @Get('/reportsToApprove')
   @MyResponse()
-  @Roles(Role.ADMIN, Role.FINANCE, Role.APPROVER, Role.SUPERUSER)
+  @Roles(Role.ADMIN, Role.APPROVER, Role.SUPERUSER)
   getUnderApprove(@AuthenticatedUser() user: PayloadStruct) {
     return this.reportService.underApprove(user.userID)
+  }
+
+  @Get('/reportsToFinanceApprove')
+  @MyResponse()
+  @Roles(Role.ADMIN, Role.FINANCE, Role.SUPERUSER)
+  getUnderFinancialApprove(@AuthenticatedUser() user: PayloadStruct) {
+    return this.reportService.approvedReports(user)
   }
 
   @Get('/:id/byUser')
@@ -85,7 +92,7 @@ export class ReportController {
 
   @Patch('/financial/admit/:id')
   @MyResponse("Relatório enviado para processamento")
-  @Roles(Role.FINANCE)
+  @Roles(Role.FINANCE, Role.ADMIN)
   async financialApproveReport(@Param('id') id: string) {
     await this.reportService.financialApproveReport(+id);
   }
