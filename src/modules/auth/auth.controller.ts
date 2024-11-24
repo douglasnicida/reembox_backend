@@ -8,23 +8,35 @@ import { UserService } from '../user/user.service';
 import { AuthenticatedUser } from 'src/decorators/auth-user.decorator';
 import { PayloadStruct } from '@/interfaces/model_types';
 import { Public } from '@/decorators/public.decorator';
+import { RagService } from '../rag/rag.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService, private readonly userService: UserService) {}
+  constructor(
+    private readonly authService: AuthService, 
+    private readonly userService: UserService,
+    private readonly ragService: RagService
+  ) {}
 
   @Public()
   @Post('/login')
   async login(@Body() loginDto: LoginDTO) {
     const auth = await this.authService.validateUser(loginDto);
     const user = await this.userService.findOneById(auth.userId);
+    const rag = await this.ragService.findOneByCustomerId(user.allocations[0]?.project?.customerId)
 
     const { id, name, company } = user
 
-    console.log(company);
-
     if(auth && user) {
-      const token = await this.authService.generateToken(auth.id, auth.email, company.id, id, name, company.name)
+      const token = await this.authService.generateToken(
+        auth.id, 
+        auth.email, 
+        company.id, 
+        id, 
+        name, 
+        company.name,
+        rag
+      )
 
       return { access_token: token }
     }
@@ -40,7 +52,7 @@ export class AuthController {
 
   @Post('/verify')
   async getUser(@Body('access_token') token: string) {
-    const { username, name, company } = await this.authService.verifyToken(token);
+    const { username, name, company, rag } = await this.authService.verifyToken(token);
 
     if(!username) {
       throw new NotFoundException('Invalid token');
@@ -49,8 +61,12 @@ export class AuthController {
     const tokenInfo = {
       username: username,
       name: name,
-      company: company
+      company: company,
+      rag: rag
     }
+
+    console.log(tokenInfo);
+    
 
     return tokenInfo;
   }

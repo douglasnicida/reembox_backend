@@ -14,9 +14,10 @@ export class AuthService {
 
   async generateToken(
     id: number, email: string, companyID: number, 
-    userID: number, name: string, company: string
+    userID: number, name: string, company: string,
+    rag: object
   ) {
-    const payload = { sub: id, username: email, companyID: companyID, userID: userID, name: name, company: company}
+    const payload = { sub: id, username: email, companyID: companyID, userID: userID, name: name, company: company, rag: rag}
     return this.jwtService.signAsync(payload);
   }
 

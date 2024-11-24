@@ -5,6 +5,7 @@ import { PrismaService } from 'prisma/service/prisma.service';
 import { Paginated, Pagination } from '@/decorators/pagination.decorator';
 import { Customer, Prisma } from '@prisma/client';
 import { QueryFilter } from '@/decorators/filter.decorator';
+import { ApprovalRagDto } from '../rag/dto/rag.dto';
 
 @Injectable()
 export class CustomerService {
