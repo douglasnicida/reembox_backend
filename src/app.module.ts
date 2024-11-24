@@ -20,10 +20,8 @@ import { ReportModule } from './modules/report/report.module';
 import { ExpenseModule } from './modules/expense/expense.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { AllocationModule } from './modules/allocation/allocation.module';
-
-// Importando o KafkaModule
-import { KafkaModule } from './kafka/kafka.module';
 import { ReceiptModule } from './modules/receipt/receipt.module';
+import { RagModule } from './modules/rag/rag.module';
 
 @Module({
   imports: [
@@ -42,7 +40,7 @@ import { ReceiptModule } from './modules/receipt/receipt.module';
     ExpenseModule,
     UploadModule,
     AllocationModule,
-    KafkaModule,
+    RagModule,
   ],
   controllers: [AppController],
   providers: [

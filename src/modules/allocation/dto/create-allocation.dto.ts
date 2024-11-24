@@ -1,29 +1,22 @@
-import { IsArray, IsDate, IsInt, IsNotEmpty, IsPositive, ValidateNested } from 'class-validator';
+import { IsArray, IsDate, IsISO8601, IsInt, IsNotEmpty, IsPositive, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateAllocationDto {
-  @IsInt({ message: 'O userId deve ser um número inteiro.' })
-  @IsNotEmpty({ message: 'O userId é obrigatório.' })
-  @IsPositive({ message: 'O userId deve ser um número positivo.' })
+  @IsInt({ message: 'O colaborador deve ser um número inteiro.' })
+  @IsNotEmpty({ message: 'O colaborador é obrigatório.' })
+  @IsPositive({ message: 'O colaborador deve ser um número positivo.' })
   userId: number;
 
-  @IsDate({ message: 'A startDate deve ser uma data válida.' })
-  @IsNotEmpty({ message: 'A startDate é obrigatória.' })
+  @IsISO8601({}, { message: "A data deve estar no formato ISO 8601" })
+  @IsNotEmpty({ message: 'A data de início é obrigatória.' })
   startDate: Date;
 
-  @IsDate({ message: 'A estimatedEndDate deve ser uma data válida.' })
-  @IsNotEmpty({ message: 'A estimatedEndDate é obrigatória.' })
+  @IsISO8601({}, { message: "A data deve estar no formato ISO 8601" })
+  @IsNotEmpty({ message: 'A data estimada de fim é obrigatória.' })
   estimatedEndDate: Date;
-}
 
-export class CreateAllocationsDto {
-  @IsInt({ message: 'O projectId deve ser um número inteiro.' })
-  @IsNotEmpty({ message: 'O projectId é obrigatório.' })
-  @IsPositive({ message: 'O projectId deve ser um número positivo.' })
+  @IsInt({ message: 'O projeto deve ser um número inteiro.' })
+  @IsNotEmpty({ message: 'O projeto é obrigatório.' })
+  @IsPositive({ message: 'O projeto deve ser um número positivo.' })
   projectId: number;
-
-  @IsArray({ message: 'Os colaboradores devem ser fornecidos como um array.' })
-  @ValidateNested({ each: true })
-  @Type(() => CreateAllocationDto)
-  allocations: CreateAllocationDto[];
 }

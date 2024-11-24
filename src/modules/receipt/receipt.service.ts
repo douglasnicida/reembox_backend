@@ -10,7 +10,8 @@ export class ReceiptService {
   async create(createReceiptDto: CreateReceiptDto) {
 
     return await this.prismaService.receipt.create({
-      data: createReceiptDto,
+      // TODO: Tirar any
+      data: createReceiptDto as any,
     });
   }
 

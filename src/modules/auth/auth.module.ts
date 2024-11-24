@@ -4,16 +4,17 @@ import { AuthController } from './auth.controller';
 import { PrismaModule } from 'prisma/service/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 import { UserModule } from '../user/user.module';
+import { RagModule } from '../rag/rag.module';
 
 @Module({
-  imports: [PrismaModule, forwardRef(() => UserModule),
+  imports: [PrismaModule, RagModule, forwardRef(() => UserModule),
     JwtModule.register({
       global: true,
       secret: process.env.SECRET,
       signOptions: {
         expiresIn: process.env.EXPIRES
       }
-    })
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService],

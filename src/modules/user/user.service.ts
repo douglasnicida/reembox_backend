@@ -5,20 +5,26 @@ import { Prisma, User } from '@prisma/client';
 import { Pagination } from '@/decorators/pagination.decorator';
 import { Role } from '@/interfaces/model_types';
 
-export interface UserWithCompanyName {
+export interface IUser {
   id: number,
   name: string,
   company: { 
     id: number,
     name: string 
-  }
+  },
+  allocations: {
+    id: number,
+    project: {
+      customerId: number,
+    }
+  }[]
 }
 
 @Injectable()
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  async findOneById(id: number) : Promise<UserWithCompanyName>{
+  async findOneById(id: number) : Promise<IUser>{
     return this.prisma.user.findUnique({ 
       where: { id }, 
       select: {
@@ -28,6 +34,17 @@ export class UserService {
           select: { 
             id: true,
             name: true 
+          }
+        },
+        allocations: {
+          where: { endDate: null },
+          select: {
+            id: true,
+            project: {
+              select: {
+                customerId: true,
+              }
+            }
           }
         }
       }
@@ -101,6 +118,74 @@ export class UserService {
       currentPage: page, 
       size,
     };
+  }
+
+  async findActualUserAllocation(userId: number) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      select: {
+        allocations: {
+          where: {
+            endDate: null
+          },
+          select: {
+            project: {
+              select: {
+                customer: {
+                  select: {
+                    id: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+
+    const rag = await this.prisma.approvalRAG.findFirst({
+      where: {
+        customerId: user.allocations[0].project.customer.id
+      },
+      select: {
+        id: true,
+        customer: {
+          select: {
+            folderId: true
+          }
+        }
+      }
+    })
+
+    return rag
+  }
+
+  async getParams(companyId: number) {
+    const users = await this.prisma.user
+      .findMany({ 
+        where: { 
+          companyId: companyId, 
+          managerId: { not: null },
+          id: {
+            notIn: (await this.prisma.allocation.findMany({
+              select: { userId: true },
+            })).map(allocation => allocation.userId),
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          jobTitle: {
+            select: {
+              title: true
+            }
+          },
+        }
+    })
+
+    return users;
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {

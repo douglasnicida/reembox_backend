@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateAllocationsDto } from './dto/create-allocation.dto';
+import { CreateAllocationDto } from './dto/create-allocation.dto';
 import { UpdateAllocationDto } from './dto/update-allocation.dto';
 import { PrismaService } from 'prisma/service/prisma.service';
 import { UserService } from '../user/user.service';
@@ -16,24 +16,56 @@ export class AllocationService {
     private readonly projectService: ProjectService,
   ) {}
 
-  async create(dto: CreateAllocationsDto) {
-    await this.userService.findMany(dto.allocations.map(alloc => alloc.userId))
+  async create(dto: CreateAllocationDto) {
+    await this.userService.findOneById(dto.userId)
     await this.projectService.findOne(dto.projectId)
 
-    const allocations = dto.allocations.map(alloc => ({
-      projectId: dto.projectId,
-      userId: alloc.userId,
-      startDate: alloc.startDate,
-      estimatedEndDate: alloc.estimatedEndDate,
-    }));
-
-    await this.prisma.allocation.createMany({
-      data: allocations,
+    await this.prisma.allocation.create({
+      data: dto,
     });
+  }
+
+  async findOne(projectId: number) {
+    const project = await this.projectService.findOne(projectId);
+  
+    if (!project) {
+      throw new Error('Projeto não encontrado');
+    }
+  
+    const allocations = await this.prisma.allocation.findMany({
+      where: {
+        projectId: projectId,
+      },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            jobTitle: {
+              select: {
+                title: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (allocations.length === 0) {
+      throw new NotFoundException(`${project.key}: não há alocações!`)
+    }
+  
+    return allocations
   }
 
   async findAllByUser(pagination: Pagination, f: QueryFilter, userId: number) {
     const { page, limit, size, offset } = pagination;
+
+    console.log(userId);
+    
 
     const filter: Prisma.AllocationWhereInput = f ? {
       OR: [
@@ -67,19 +99,25 @@ export class AllocationService {
         project: {
           select: {
             name: true,
+            key: true,
             active: true,
             customer: {
               select: {
+                id: true,
                 name: true,
               },
             },
             allocations: { 
               select: {
-                userId: true,
                 user: {
                   select: {
                     id: true,
                     name: true,
+                    jobTitle: {
+                      select: {
+                        title: true
+                      }
+                    }
                   },
                 },
               },
@@ -93,14 +131,28 @@ export class AllocationService {
       this.prisma.allocation.findMany(query),
       this.prisma.allocation.count({ where: whereQuery })
     ])
-  
-    const filteredAllocations = allocations.map(allocation => {
+
+    const filteredAllocations = allocations.map(({ project, ...rest }) => {
+      console.log(project.allocations);
+      
       return {
-        ...allocation,
-        // Filtra os usuários que não são o próprio usuário
-        projectUsers: allocation.project.allocations
-          .filter(allocation => allocation.userId !== userId)
-          .map(allocation => allocation.user),
+        id: rest.id,
+        startDate: rest.startDate,
+        estimatedEndDate: rest.estimatedEndDate,
+        endDate: rest.endDate,
+        project: {
+          name: project.name,
+          key: project.key,
+        },
+        customer: {
+          id: project.customer.id,
+          name: project.customer.name,
+        },
+        allocations: project.allocations.map(({ user })=> ({
+          id: user.id,
+          name: user.name,
+          jobTitle: user.jobTitle?.title
+        })),
       };
     });
 
@@ -124,23 +176,18 @@ export class AllocationService {
       endDate: f.areAllocationsFinished ? { not: null } : null
     } : {};
 
-    const whereQuery = {
-      OR: [
-        { project: { name: { contains: f.q, mode: 'insensitive' } }},
-        { project: { key: { contains: f.q, mode: 'insensitive' } } },
-        { project: { customer: { name: { contains: f.q, mode: 'insensitive' } } } },
-        { customer: {
-          name: { contains: f.q, mode: 'insensitive' }
-        }},
-      ],
-      projects: {
-        some: {
-          companyId,
-        }
-      },
-      ...filter
-    } as Prisma.AllocationWhereInput
-
+  const whereQuery = {
+    OR: [
+      { project: { name: { contains: f.q, mode: 'insensitive' } } },
+      { project: { key: { contains: f.q, mode: 'insensitive' } } },
+      // { project: { customer: { name: { contains: f.q, mode: 'insensitive' } } } },
+    ],
+    project: {
+      companyId: companyId,
+    },
+    ...filter,
+  } as Prisma.AllocationWhereInput;
+  
     const query = {
       skip: offset,
       take: limit,
@@ -152,6 +199,7 @@ export class AllocationService {
         id: true,
         startDate: true,
         endDate: true,
+        estimatedEndDate: true,
         project: {
           select: {
             key: true,
@@ -193,6 +241,18 @@ export class AllocationService {
       currentPage: page + 1, 
       size,
     };
+  }
+
+  async getParams(companyId: number) {
+    const projects = await this.projectService.getParams(companyId)
+    const data = await this.userService.getParams(companyId)
+
+    const users = data.map(user => ({
+      id: user.id,
+      param: `${user.name}, ${user.jobTitle?.title}`
+    }))
+
+    return { projects, users }
   }
 
   async finalizeAllocation(id: number, dto: UpdateAllocationDto) {

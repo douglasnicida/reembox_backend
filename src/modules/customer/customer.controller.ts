@@ -1,20 +1,29 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpStatus, Query, Inject, OnModuleInit } from '@nestjs/common';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { MyResponse } from '@/interceptors/response.interceptor';
 import { Pagination, PaginationParams } from '@/decorators/pagination.decorator';
 import { AuthenticatedUser } from '@/decorators/auth-user.decorator';
-import { PayloadStruct } from '@/interfaces/model_types';
+import { PayloadStruct, Role } from '@/interfaces/model_types';
 import { FilterParams, QueryFilter } from '@/decorators/filter.decorator';
-import { KafkaData, KafkaProducerService } from '@/kafka/producer.service';
+import { KafkaData, sendMessage } from '@/kafka/utils';
+import { Roles } from '@/decorators/roles.decorator';
+import { ApprovalRagDto } from '../rag/dto/rag.dto';
+import { ClientKafka, MessagePattern, Payload } from '@nestjs/microservices';
+import { FolderCreatedMessage } from '@/types/events';
 
 @Controller('customers')
-export class CustomerController {
+export class CustomerController implements OnModuleInit {
   constructor(
     private readonly customerService: CustomerService,
-    private readonly kafkaProducerService: KafkaProducerService
+    @Inject('CUSTOMER_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
+
+  async onModuleInit() {
+    this.kafkaClient.subscribeToResponseOf('customer-created');
+    await this.kafkaClient.connect();
+  }
 
   @Post()
   @MyResponse("Cliente criado com sucesso", HttpStatus.CREATED)
@@ -22,8 +31,8 @@ export class CustomerController {
     const newCustomer = await this.customerService.create(dto);
 
     const message: KafkaData = {
-      event_type: "create-customer",
-      source: "customer-service",
+      event_type: "customer-created",
+      source: "nestjs",
       data: {
         id: newCustomer.id,
         name: newCustomer.name,
@@ -31,7 +40,7 @@ export class CustomerController {
       },
     };
 
-    await this.kafkaProducerService.sendMessage('customer_created', message);
+    await sendMessage(this.kafkaClient, "customer-created", message);
   }
 
   @Get('')
@@ -60,5 +69,11 @@ export class CustomerController {
   @MyResponse()
   remove(@Param('id') id: string) {
     return this.customerService.remove(+id);
+  }
+
+  @MessagePattern('customer-created')
+  async handleFolderCreated(@Payload() message: FolderCreatedMessage) {
+    console.log(`Mensagem recebida: ${JSON.stringify(message)}`);
+    return []
   }
 }

@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, HttpStatus } from '@nestjs/common';
 import { AllocationService } from './allocation.service';
-import { CreateAllocationsDto } from './dto/create-allocation.dto';
 import { UpdateAllocationDto } from './dto/update-allocation.dto';
 import { PayloadStruct, Role } from '@/interfaces/model_types';
 import { Roles } from '@/decorators/roles.decorator';
@@ -8,6 +7,7 @@ import { MyResponse } from '@/interceptors/response.interceptor';
 import { AuthenticatedUser } from '@/decorators/auth-user.decorator';
 import { FilterParams, QueryFilter } from '@/decorators/filter.decorator';
 import { Pagination, PaginationParams } from '@/decorators/pagination.decorator';
+import { CreateAllocationDto } from './dto/create-allocation.dto';
 
 @Controller('allocations')
 export class AllocationController {
@@ -16,7 +16,7 @@ export class AllocationController {
   @Post()
   @Roles(Role.ADMIN, Role.APPROVER)
   @MyResponse("Alocação criada com sucesso", HttpStatus.CREATED)
-  async create(@Body() dto: CreateAllocationsDto) {
+  async create(@Body() dto: CreateAllocationDto) {
     await this.allocationService.create(dto);
   }
 
@@ -37,6 +37,19 @@ export class AllocationController {
     @FilterParams() filter: QueryFilter,
     @AuthenticatedUser() user: PayloadStruct) {
     return this.allocationService.findAllByUser(pagination, filter, user.userID);
+  }
+
+  @Get('/params')
+  @Roles(Role.ADMIN, Role.APPROVER)
+  @MyResponse("Foram encontrados {length} parâmetros na criação de alocação")
+  getParams(@AuthenticatedUser() user: PayloadStruct) {
+    return this.allocationService.getParams(user.companyID)
+  }
+
+  @Get(':id')
+  @MyResponse("Alocação obtida com sucesso")
+  findOne(@Param('id') projectId: number) {
+    return this.allocationService.findOne(+projectId);
   }
 
   @Patch(':id')

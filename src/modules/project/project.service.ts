@@ -14,7 +14,6 @@ export class ProjectService {
     const project = await this.prisma.project.findUnique({ where: { key: dto.key } })
 
     if (project) {
-      console.log(project);
       throw new ConflictException("Esse projeto já existe")
     }
 
