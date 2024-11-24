@@ -78,7 +78,7 @@ export class ReportController {
 
   @Patch('/submit/:id')
   @MyResponse("Relatório submitido com sucesso")
-  @Roles(Role.USER, Role.FINANCE, Role.APPROVER)
+  @Roles(Role.APPROVER, Role.FINANCE, Role.USER, Role.ADMIN, Role.SUPERUSER)
   async submitForApproval(@Param('id') id: string) {
     await this.reportService.submitForApproval(+id);
   }
@@ -102,6 +102,13 @@ export class ReportController {
   @Roles(Role.APPROVER, Role.FINANCE)
   async rejectReport(@Param('id') id: string) {
     await this.reportService.rejectReport(+id);
+  }
+
+  @Patch('/reopen/:id')
+  @MyResponse("Relatório reaberto com sucesso")
+  @Roles(Role.APPROVER, Role.FINANCE, Role.USER, Role.ADMIN, Role.SUPERUSER)
+  async reopenReport(@Param('id') id: string) {
+    await this.reportService.reOpenRejectedReport(+id);
   }
 
   @Get()

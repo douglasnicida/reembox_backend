@@ -346,6 +346,27 @@ export class ReportService {
     })
   }
 
+  async reOpenRejectedReport(id: number) {
+    const report = await this.prisma.report.findUnique({where: {id} });
+
+    if(!report) {
+      throw new NotFoundException('Nenhum relatório encontrado.')
+    }
+
+    if(report.status !== 'REJECTED') {
+      throw new ForbiddenException('Relatório não possui status de rejeitado para essa ação.')
+    }
+
+    await this.prisma.report.update({
+      data: {
+        status: 'OPEN'
+      },
+      where: {
+        id: report.id
+      }
+    });
+  }
+
   // TODO: Falta testar este endpoint de adicionar despesa
   async addExpense(id: number, expensesIDs: number[]) {
     const report: Report = await this.prisma.report.findUniqueOrThrow({ where: { id: id } });
