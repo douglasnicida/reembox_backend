@@ -27,7 +27,7 @@ export class ExpenseService {
       data: await this.upsert(dto, user)
     })
 
-    if (dto.reportCode) {
+    if (dto.reportId) {
       await this.addExpensesToReport(dto, expense)
     }
 
@@ -110,11 +110,17 @@ export class ExpenseService {
   }
   
   async findOne(id: number) {
-    return this.prisma.expense
+    const expense = await this.prisma.expense
     .findUniqueOrThrow({ where: { id } })
     .catch(() => { 
       throw new NotFoundException(`Despesa com id = ${id} não encontrada`) 
     })
+
+    const receipts = await this.prisma.receipt.findMany({where: {expenseId: id}})
+    return {
+      ...expense,
+      receipts
+    }
   }
 
   async update(id: number, dto: UpdateExpenseDto, user: PayloadStruct) {
@@ -154,11 +160,11 @@ export class ExpenseService {
         throw new NotFoundException(`Categoria de despesa com id = ${costCenterId} não foi encontrado`) 
       })
       
-    if (dto.reportCode) {
+    if (dto.reportId) {
       await this.prisma.report
-      .findUniqueOrThrow({ where: { code: dto.reportCode } })
+      .findUniqueOrThrow({ where: { id: dto.reportId } })
       .catch(() => { 
-        throw new NotFoundException(`Relatório com id = ${dto.costCenterId} não foi encontrado`) 
+        throw new NotFoundException(`Relatório com id = ${dto.reportId} não foi encontrado`) 
       })
     }
 

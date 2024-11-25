@@ -9,26 +9,25 @@ datasource db {
 }
 
 model User {
-  id              Int          @id @default(autoincrement())
+  id              Int           @id @default(autoincrement())
   name            String
-  active          Boolean      @default(true)
+  active          Boolean       @default(true)
   companyId       Int
   managerId       Int?
-  cpf             String       @unique @db.VarChar(11)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
-  phone           String       @db.VarChar(11)
+  cpf             String        @unique @db.VarChar(11)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  phone           String        @db.VarChar(11)
   jobTitleId      Int?
   allocations     Allocation[]
-  auth            Auth?
-  approvedReports Report[]     @relation("approver")
-  createdReports  Report[]     @relation("creator")
-  company         Company      @relation(fields: [companyId], references: [id])
-  jobTitle        JobTitle?    @relation(fields: [jobTitleId], references: [id])
-  User            User?        @relation("UserToUser", fields: [managerId], references: [id])
-  other_User      User[]       @relation("UserToUser")
-
   approvalRAGs    ApprovalRAG[]
+  auth            Auth?
+  approvedReports Report[]      @relation("approver")
+  createdReports  Report[]      @relation("creator")
+  company         Company       @relation(fields: [companyId], references: [id])
+  jobTitle        JobTitle?     @relation(fields: [jobTitleId], references: [id])
+  User            User?         @relation("UserToUser", fields: [managerId], references: [id])
+  other_User      User[]        @relation("UserToUser")
 }
 
 model Allocation {
@@ -128,13 +127,13 @@ model Company {
   updatedAt         DateTime          @updatedAt
   founded_year      String
   address           Address?
+  ragApprovals      ApprovalRAG[]
   costCenters       CostCenter[]
   expenses          Expense[]
   expenseCategories ExpenseCategory[]
   jobTitles         JobTitle[]
   project           Project[]
   users             User[]
-  ragApprovals      ApprovalRAG[]
 }
 
 model CostCenter {
@@ -148,7 +147,6 @@ model CostCenter {
   company     Company   @relation(fields: [companyId], references: [id])
   expenses    Expense[]
 }
-
 
 model Project {
   id          Int          @id @default(autoincrement())
@@ -166,34 +164,32 @@ model Project {
 }
 
 model Customer {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String
-  active    Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  phone     String    @db.VarChar(11)
-  updatedAt DateTime  @updatedAt
-  projects  Project[]
-  folderId  String?
-  approvalRAGs    ApprovalRAG[]
+  id           Int           @id @default(autoincrement())
+  name         String
+  email        String
+  active       Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  phone        String        @db.VarChar(11)
+  updatedAt    DateTime      @updatedAt
+  folderId     String?
+  approvalRAGs ApprovalRAG[]
+  projects     Project[]
 }
 
 model ApprovalRAG {
-  id          Int       @id @default(autoincrement())
-  approverId  Int
-  companyId   Int
-  customerId  Int       
-  remarks     String?   @db.VarChar(255) 
-  llmModel   String    @db.VarChar(255) 
-  embeddingModel String @db.VarChar(255)
-  createdAt   DateTime  @default(now()) 
-  updatedAt   DateTime  @updatedAt 
-
-  approver    User      @relation(fields: [approverId], references: [id])
-  customer    Customer  @relation(fields: [customerId], references: [id])
-  company     Company   @relation(fields: [companyId], references: [id])
+  id             Int      @id @default(autoincrement())
+  approverId     Int
+  customerId     Int
+  remarks        String?  @db.VarChar(255)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  companyId      Int
+  embeddingModel String   @db.VarChar(255)
+  llmModel       String   @db.VarChar(255)
+  approver       User     @relation(fields: [approverId], references: [id])
+  company        Company  @relation(fields: [companyId], references: [id])
+  customer       Customer @relation(fields: [customerId], references: [id])
 }
-
 
 model Address {
   id         Int     @id @default(autoincrement())
