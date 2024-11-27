@@ -14,16 +14,13 @@ import { ClientKafka, MessagePattern, Payload } from '@nestjs/microservices';
 import { FolderCreatedMessage } from '@/types/events';
 
 @Controller('customers')
-export class CustomerController implements OnModuleInit {
+export class CustomerController {
   constructor(
     private readonly customerService: CustomerService,
-    @Inject('CUSTOMER_SERVICE') private readonly kafkaClient: ClientKafka,
+    // @Inject('CUSTOMER_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
 
-  async onModuleInit() {
-    this.kafkaClient.subscribeToResponseOf('customer-created');
-    await this.kafkaClient.connect();
-  }
+  
 
   @Post()
   @MyResponse("Cliente criado com sucesso", HttpStatus.CREATED)
@@ -40,7 +37,7 @@ export class CustomerController implements OnModuleInit {
       },
     };
 
-    await sendMessage(this.kafkaClient, "customer-created", message);
+    // await sendMessage(this.kafkaClient, "customer-created", message);
   }
 
   @Get('')
@@ -69,11 +66,5 @@ export class CustomerController implements OnModuleInit {
   @MyResponse()
   remove(@Param('id') id: string) {
     return this.customerService.remove(+id);
-  }
-
-  @MessagePattern('customer-created')
-  async handleFolderCreated(@Payload() message: FolderCreatedMessage) {
-    console.log(`Mensagem recebida: ${JSON.stringify(message)}`);
-    return []
   }
 }

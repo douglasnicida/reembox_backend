@@ -60,6 +60,16 @@ export class ReportService {
           expenseId: expense.id
         }))
       });
+
+      // atualizando valor do total do relatório
+      await this.prisma.report.update({
+        data: {
+          total: expenses.reduce((acc, expense) => acc + (expense.value * expense.quantity), 0)
+        },
+        where: {
+          id
+        }
+      })
     }
   }
 
@@ -383,6 +393,16 @@ export class ReportService {
         expenseId: expense.id
       }))
     });
+
+    // atualizando valor do total do relatório
+    await this.prisma.report.update({
+      data: {
+        total: expenses.reduce((acc, expense) => acc + (expense.value * expense.quantity), report.total)
+      },
+      where: {
+        id
+      }
+    })
   }
 
   async getParams(userId: number) {
