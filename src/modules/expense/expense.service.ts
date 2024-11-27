@@ -34,7 +34,7 @@ export class ExpenseService {
     return expense.id;
   }
 
-  async findAll(pagination: Pagination): Promise<Paginated<Expense>> {
+  async findAll(pagination: Pagination, user: PayloadStruct): Promise<Paginated<Expense>> {
     const { page, limit, size, offset } = pagination;
 
     const query = {
@@ -42,6 +42,9 @@ export class ExpenseService {
       take: limit,
       orderBy: {
         expenseDate: "desc"
+      },
+      where: {
+        companyId: user.companyID
       },
       select: {
         id: true,
@@ -68,7 +71,7 @@ export class ExpenseService {
 
     const [expenses, total] = await this.prisma.$transaction([
       this.prisma.expense.findMany(query),
-      this.prisma.expense.count()
+      this.prisma.expense.count({where: query.where})
     ])
 
     if (total <= 0) {

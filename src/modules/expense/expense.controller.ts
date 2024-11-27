@@ -22,8 +22,8 @@ export class ExpenseController {
   @Get()
   @MyResponse("Foram encontradas {length} despesas")
   @Roles(Role.FINANCE, Role.APPROVER)
-  findAll(@PaginationParams() pagination: Pagination) {
-    return this.expenseService.findAll(pagination);
+  findAll(@PaginationParams() pagination: Pagination, @AuthenticatedUser() user: PayloadStruct) {
+    return this.expenseService.findAll(pagination, user);
   }
 
   @Get('/findAllByCompany')
