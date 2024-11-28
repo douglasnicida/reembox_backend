@@ -205,9 +205,11 @@ export class ReportService {
   }
 
   async update(id: number, dto: UpdateReportDto) {
-    await this.prisma.report
+    const report = await this.prisma.report
       .findUniqueOrThrow({ where: { id } })
       .catch(() => { throw new NotFoundException(`Relatório com id = ${id} não encontrado`) }) 
+
+    if(report.status != 'OPEN') { throw new ForbiddenException('Não é possível atualizar um relatório fechado.') }
 
     await this.prisma.report.update({
       where: { id },
