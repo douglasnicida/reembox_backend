@@ -445,4 +445,10 @@ export class ReportService {
     const expenses: any[] = await this.expenseService.findAllByCompany(user)
     return { approvers, expenses }
   }
+
+  async delete(id: number){
+    const report = await this.prisma.report.findFirstOrThrow({where: {id}})
+
+    await this.prisma.report.delete({where: {id: report.id}})
+  }
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, HttpStatus, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, HttpStatus, Patch, Delete } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
@@ -127,5 +127,12 @@ export class ReportController {
         undefined, 
         status as ReportStatus
     );
+  }
+
+  @Delete('/:id')
+  @MyResponse("Relatório excluído com sucesso")
+  @Roles(Role.APPROVER, Role.FINANCE, Role.ADMIN)
+  async deleteReport(@Param('id') id: string) {
+    await this.reportService.delete(+id)
   }
 } 
