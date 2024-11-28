@@ -162,6 +162,7 @@ export class ReportService {
     const findManyQuery = {
       where: {
         creator: { companyId: user.companyID },
+        ...(query.user ? {creatorId: user.userID} : {}),
         ...(query.year && {
           createdAt: {
             gte: new Date(`${query.year}-01-01T00:00:00Z`), // Data de início do ano
