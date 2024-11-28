@@ -1,4 +1,4 @@
-import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { PrismaService } from 'prisma/service/prisma.service';
@@ -207,6 +207,10 @@ export class ExpenseService {
       }
     }
     
+    const report = await this.prisma.report.findUnique({ where: { id: dto.reportId } });
+    if(report.status != 'OPEN'){
+      throw new BadRequestException('O relatório não está aberto.');
+    }
 
     // Se não existir, prosseguir com a criação da relação
     const { expense: createdExpense } = await this.prisma.reportExpense.create({
@@ -229,7 +233,6 @@ export class ExpenseService {
     });
 
     // Calcular valor total das despesas
-    const report = await this.prisma.report.findUnique({ where: { id: dto.reportId } });
 
     report.total += createdExpense.quantity * createdExpense.value;
 
