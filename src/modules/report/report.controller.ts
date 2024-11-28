@@ -34,6 +34,13 @@ export class ReportController {
     return this.reportService.findAllByCreator(pagination, user);
   }
 
+  @Get('/findAllByCompany')
+  @MyResponse("Foram encontrados {length} relatórios")
+  @Roles(Role.FINANCE, Role.APPROVER, Role.ADMIN)
+  findAllByCompany(@AuthenticatedUser() user: PayloadStruct) {
+    return this.reportService.findAllByCompany(user);
+  }
+
   @Get('/params')
   @MyResponse()
   @Roles(Role.USER, Role.ADMIN, Role.FINANCE, Role.APPROVER, Role.SUPERUSER)

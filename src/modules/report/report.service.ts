@@ -83,7 +83,7 @@ export class ReportService {
         updatedAt: "desc"
       },
       where: {
-        // ...(user ? { creatorId: user.id } : {}),
+        ...(user ? { creator: {companyId: user.companyID} } : {}),
         ...(status ? { status: status } : {})
       },
       include: {
@@ -154,6 +154,19 @@ export class ReportService {
       currentPage: page, 
       size,
     };
+  }
+
+  async findAllByCompany(user: PayloadStruct) {
+
+    if(!user) { throw new NotFoundException('Usuário não autenticado.') }
+
+    const reports = await this.prisma.report.findMany({
+      where: {
+        creator: { companyId: user.companyID}
+      }
+    })
+
+    return reports;
   }
 
   async findOne(id: number) {
