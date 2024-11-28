@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, HttpStatus, Patch, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, HttpStatus, Patch, Delete, Query } from '@nestjs/common';
 import { ReportService } from './report.service';
 import { CreateReportDto } from './dto/create-report.dto';
 import { UpdateReportDto } from './dto/update-report.dto';
@@ -37,8 +37,8 @@ export class ReportController {
   @Get('/findAllByCompany')
   @MyResponse("Foram encontrados {length} relatórios")
   @Roles(Role.FINANCE, Role.APPROVER, Role.ADMIN)
-  findAllByCompany(@AuthenticatedUser() user: PayloadStruct) {
-    return this.reportService.findAllByCompany(user);
+  findAllByCompany(@AuthenticatedUser() user: PayloadStruct, @Query('query') query?: any) {
+    return this.reportService.findAllByCompany(user, query);
   }
 
   @Get('/params')

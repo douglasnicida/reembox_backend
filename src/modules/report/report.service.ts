@@ -156,16 +156,23 @@ export class ReportService {
     };
   }
 
-  async findAllByCompany(user: PayloadStruct) {
+  async findAllByCompany(user: PayloadStruct, query?: any) {
 
     if(!user) { throw new NotFoundException('Usuário não autenticado.') }
-
-    const reports = await this.prisma.report.findMany({
+    const findManyQuery = {
       where: {
-        creator: { companyId: user.companyID}
+        creator: { companyId: user.companyID },
+        ...(query.year && {
+          createdAt: {
+            gte: new Date(`${query.year}-01-01T00:00:00Z`), // Data de início do ano
+            lt: new Date(`${Number(query.year) + 1}-01-01T00:00:00Z`) // Data de início do próximo ano
+          }
+        })
       }
-    })
-
+    } as Prisma.ReportFindManyArgs
+    
+    const reports = await this.prisma.report.findMany(findManyQuery);
+    
     return reports;
   }
 
