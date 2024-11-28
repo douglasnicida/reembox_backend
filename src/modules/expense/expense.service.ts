@@ -1,4 +1,4 @@
-import { forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { PrismaService } from 'prisma/service/prisma.service';
@@ -203,7 +203,7 @@ export class ExpenseService {
 
       // Se a relação já existir, podemos optar por não fazer nada ou lançar um erro
       if (existingRelation) {
-          throw new Error('A relação entre a despesa e o relatório já existe.');
+          throw new ConflictException('A relação entre a despesa e o relatório já existe.');
       }
     }
     
@@ -215,7 +215,7 @@ export class ExpenseService {
                 connect: { id: expense.id }
             },
             report: { 
-                connect: { code: dto.reportCode }
+                connect: { id: dto.reportId }
             }
         },
         include: {
@@ -229,7 +229,7 @@ export class ExpenseService {
     });
 
     // Calcular valor total das despesas
-    const report = await this.prisma.report.findUnique({ where: { code: dto.reportCode } });
+    const report = await this.prisma.report.findUnique({ where: { id: dto.reportId } });
 
     report.total += createdExpense.quantity * createdExpense.value;
 
