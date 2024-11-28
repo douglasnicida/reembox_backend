@@ -114,7 +114,14 @@ export class ExpenseService {
   
   async findOne(id: number) {
     const expense = await this.prisma.expense
-    .findUniqueOrThrow({ where: { id } })
+    .findUniqueOrThrow({ 
+      where: { id } ,
+      include: {
+        project: {select: {id: true, name: true}},
+        costCenter: {select: {id: true, description: true}},
+        category: {select: {id: true, description: true}},
+      }
+    })
     .catch(() => { 
       throw new NotFoundException(`Despesa com id = ${id} não encontrada`) 
     })

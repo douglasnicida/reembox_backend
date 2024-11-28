@@ -71,7 +71,7 @@ export class ReportController {
 
   @Get(':id')
   @MyResponse("Relatório obtido com sucesso")
-  @Roles(Role.FINANCE, Role.APPROVER)
+  @Roles(Role.FINANCE, Role.APPROVER, Role.ADMIN)
   findOne(@Param('id') id: string) {
     return this.reportService.findOne(+id);
   }
