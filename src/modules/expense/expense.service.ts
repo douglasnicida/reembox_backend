@@ -134,17 +134,16 @@ export class ExpenseService {
   }
 
   async update(id: number, dto: UpdateExpenseDto, user: PayloadStruct) {
-    await this.prisma.expense
+    const expense: Expense = await this.prisma.expense
       .findUniqueOrThrow({ where: { id } })
       .catch(() => { throw new NotFoundException(`Despesa com id = ${id} não encontrado`) }) 
 
-    const expense: Expense = await this.prisma.expense.update({
+    await this.prisma.expense.update({
       where: { id },
       data: await this.upsert(dto, user)
     })
 
     // alterando valor dos totais após atualização de valores
-    //TODO: verificar se está funcionando ao alterar
     const reportExpenses: ReportExpense[] = await this.prisma.reportExpense.findMany({
       where: {
         expenseId: id,
@@ -160,7 +159,7 @@ export class ExpenseService {
 
       if (currentReport) {
         const newTotal = currentReport.total + totalDiff
-        await this.prisma.report.update({
+        const newReport = await this.prisma.report.update({
           where: { id: reportExpense.reportId },
           data: {
             total: newTotal

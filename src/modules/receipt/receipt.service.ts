@@ -27,7 +27,12 @@ export class ReceiptService {
     return this.prismaService.receipt.update({data: updateReceiptDto, where: {id}});
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} receipt`;
+  async remove(ids: string[]) {
+    const receiptsIDs = ids.map((id) => Number(id))
+    if(receiptsIDs.length > 0) {
+      return await this.prismaService.receipt.deleteMany({where: {id: {in: receiptsIDs}}});
+    } else {
+      
+    }
   }
 }

@@ -32,8 +32,9 @@ export class ReceiptController {
     return this.receiptService.update(+id, updateReceiptDto);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.receiptService.remove(+id);
+  @Delete('')
+  @MyResponse('Recibos deletados com sucesso.', HttpStatus.OK)
+  remove(@Body() body: any) {
+    return this.receiptService.remove(body.receiptsId);
   }
 }
