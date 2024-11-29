@@ -400,7 +400,6 @@ export class ReportService {
     });
   }
 
-  // TODO: Falta testar este endpoint de adicionar despesa
   async addExpense(id: number, expensesIDs: number[]) {
     const report: Report = await this.prisma.report.findUniqueOrThrow({ where: { id: id } });
 
