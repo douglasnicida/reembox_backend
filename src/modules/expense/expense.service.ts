@@ -2,7 +2,7 @@ import { BadRequestException, ConflictException, forwardRef, Inject, Injectable,
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { PrismaService } from 'prisma/service/prisma.service';
-import { Expense, Prisma } from '@prisma/client';
+import { Expense, Prisma, ReportExpense } from '@prisma/client';
 import { Paginated, Pagination } from '@/decorators/pagination.decorator';
 import { PayloadStruct } from '@/interfaces/model_types';
 import { CostCenterService } from '../cost-center/cost-center.service';
@@ -138,15 +138,42 @@ export class ExpenseService {
       .findUniqueOrThrow({ where: { id } })
       .catch(() => { throw new NotFoundException(`Despesa com id = ${id} não encontrado`) }) 
 
-    const expense = await this.prisma.expense.update({
+    const expense: Expense = await this.prisma.expense.update({
       where: { id },
       data: await this.upsert(dto, user)
     })
 
+    // alterando valor dos totais após atualização de valores
+    //TODO: verificar se está funcionando ao alterar
+    const reportExpenses: ReportExpense[] = await this.prisma.reportExpense.findMany({
+      where: {
+        expenseId: id,
+      }
+    })
+
+    const totalDiff = (dto.quantity * dto.value) - (expense.quantity * expense.value)
+
+    reportExpenses.forEach(async (reportExpense: ReportExpense) => {
+      const currentReport = await this.prisma.report.findUnique({
+        where: { id: reportExpense.reportId },
+      });
+
+      if (currentReport) {
+        const newTotal = currentReport.total + totalDiff
+        await this.prisma.report.update({
+          where: { id: reportExpense.reportId },
+          data: {
+            total: newTotal
+          }
+        })
+      }
+      
+    })
+
     
-    if (dto.reportCode) {
-      await this.addExpensesToReport(dto, expense)
-    }
+    // if (dto.reportId) {
+    //   await this.addExpensesToReport(dto, expense)
+    // }
   }
 
   private async upsert(dto: CreateExpenseDto | UpdateExpenseDto, user: PayloadStruct) {
