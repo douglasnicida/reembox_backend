@@ -64,16 +64,13 @@ export class AuthController {
       company: company,
       rag: rag
     }
-
-    console.log(tokenInfo);
     
-
     return tokenInfo;
   }
 
   @Get('/getRole')
-  async getUserRole(@AuthenticatedUser() user: PayloadStruct) {
-    const { role } = await this.authService.findOneByEmail(user.email);
+  async getUserRole(@AuthenticatedUser() user: any) {
+    const { role } = await this.authService.findOneById(user.sub);
 
     return role;
   }

@@ -37,6 +37,10 @@ export class AuthService {
     return await this.prisma.auth.findFirstOrThrow({where: {email: email}});
   }
 
+  async findOneById(id: number) : Promise<Auth> {
+    return await this.prisma.auth.findFirstOrThrow({where: {id: id}});
+  }
+
   async validateUser(loginDTO: LoginDTO): Promise<any> {
     const authUser = await this.findOneByEmail(loginDTO.email);
     if (authUser) {
