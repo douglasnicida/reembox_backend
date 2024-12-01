@@ -210,7 +210,11 @@ export class UserService {
   async changeJobTitle(id: number, jobTitleID: number) {
     const user = await this.prisma.user.findUniqueOrThrow({ where: { id: Number(id) } });
 
-    const jobTitle = await this.prisma.jobTitle.findUniqueOrThrow({ where: { id: jobTitleID }})
+    const jobTitle = await this.prisma.jobTitle.findUniqueOrThrow({
+      where: {
+        id: Number(jobTitleID)
+      }
+    });
 
     return await this.prisma.user.update({
       where: {

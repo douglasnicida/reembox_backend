@@ -33,7 +33,6 @@ export async function sendMessage(kafkaClient: ClientKafka, topic: string, data:
       source,
       ...metadata,
     },
-    
   };
 
   await firstValueFrom(kafkaClient.emit(topic, message));

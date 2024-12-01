@@ -8,19 +8,14 @@ import { AuthenticatedUser } from '@/decorators/auth-user.decorator';
 import { PayloadStruct, Role } from '@/interfaces/model_types';
 import { FilterParams, QueryFilter } from '@/decorators/filter.decorator';
 import { KafkaData, sendMessage } from '@/kafka/utils';
-import { Roles } from '@/decorators/roles.decorator';
-import { ApprovalRagDto } from '../rag/dto/rag.dto';
 import { ClientKafka, MessagePattern, Payload } from '@nestjs/microservices';
-import { FolderCreatedMessage } from '@/types/events';
 
 @Controller('customers')
 export class CustomerController {
   constructor(
     private readonly customerService: CustomerService,
-    // @Inject('CUSTOMER_SERVICE') private readonly kafkaClient: ClientKafka,
+    @Inject('CUSTOMER_SERVICE') private readonly kafkaClient: ClientKafka,
   ) {}
-
-  
 
   @Post()
   @MyResponse("Cliente criado com sucesso", HttpStatus.CREATED)
@@ -37,7 +32,7 @@ export class CustomerController {
       },
     };
 
-    // await sendMessage(this.kafkaClient, "customer-created", message);
+    await sendMessage(this.kafkaClient, "customer-created", message);
   }
 
   @Get('')

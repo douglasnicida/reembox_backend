@@ -252,6 +252,9 @@ export class AllocationService {
       param: `${user.name}, ${user.jobTitle?.title}`
     }))
 
+    console.log(users);
+    
+
     return { projects, users }
   }
 
